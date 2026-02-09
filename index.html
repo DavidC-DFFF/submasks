@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Subnet Sprint</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="game-wrap">
+    <header class="topbar">
+      <div class="status-block">
+        <span class="label">Niveau</span>
+        <span id="levelValue" class="value">1</span>
+      </div>
+
+      <div class="status-block lives-block">
+        <span class="label">Vies</span>
+        <span id="livesValue" class="value">5</span>
+      </div>
+
+      <div class="status-block score-block">
+        <span class="label">Score</span>
+        <span id="scoreValue" class="value">0</span>
+      </div>
+    </header>
+
+    <section class="progress-section">
+      <div class="progress-title">Progression du niveau</div>
+      <div id="levelProgress" class="level-progress"></div>
+    </section>
+
+    <section class="question-section">
+      <p class="small-info">Convertis vers l'autre notation :</p>
+      <div id="questionValue" class="question-value">/24</div>
+      <p id="questionMode" class="mode-hint">Donne la notation décimale</p>
+    </section>
+
+    <section class="input-section">
+      <input
+        id="answerInput"
+        type="text"
+        autocomplete="off"
+        inputmode="text"
+        placeholder="Ta réponse ici (ex: 255.255.255.0 ou /24)"
+      />
+      <button id="validateBtn" type="button">Valider</button>
+    </section>
+
+    <section class="message-section">
+      <p id="message" class="message"></p>
+    </section>
+
+    <section class="legend-section">
+      <div class="legend-item">
+        <span class="chip chip-time"></span>
+        <span>Temps restant</span>
+      </div>
+      <div class="legend-item">
+        <span class="chip chip-bonus"></span>
+        <span>Zone bonus (réponse rapide = +1 vie)</span>
+      </div>
+    </section>
+
+    <section class="timebar-section">
+      <div id="timeBarTrack" class="timebar-track">
+        <div id="bonusMarker" class="bonus-marker"></div>
+        <div id="timeBarFill" class="timebar-fill"></div>
+      </div>
+    </section>
+
+    <section class="controls">
+      <button id="restartBtn" type="button" class="secondary">Recommencer</button>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

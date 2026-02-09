@@ -1,0 +1,272 @@
+:root {
+  --bg: #0f1320;
+  --panel: #181f33;
+  --panel-2: #1f2942;
+  --text: #f2f6ff;
+  --muted: #9fb0d0;
+  --accent: #7aa2ff;
+  --ok: #3ecf8e;
+  --warn: #ffb020;
+  --danger: #ff5d73;
+  --bonus: #ffdc5e;
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  background: radial-gradient(circle at top, #1b2440 0%, var(--bg) 65%);
+  color: var(--text);
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+
+.game-wrap {
+  width: min(920px, 100%);
+  background: linear-gradient(180deg, var(--panel) 0%, #131a2b 100%);
+  border: 1px solid #2b3960;
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  padding: 20px;
+}
+
+.topbar {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.status-block {
+  background: var(--panel-2);
+  border: 1px solid #33466f;
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.label {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.value {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.progress-section {
+  margin-bottom: 18px;
+}
+
+.progress-title {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin-bottom: 8px;
+}
+
+.level-progress {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 8px;
+}
+
+.step {
+  height: 16px;
+  border-radius: 999px;
+  border: 1px solid #45609a;
+  background: #213156;
+  transition: 0.2s ease;
+}
+
+.step.on {
+  background: var(--accent);
+  box-shadow: 0 0 10px rgba(122, 162, 255, 0.55);
+}
+
+.question-section {
+  text-align: center;
+  background: #16203a;
+  border: 1px solid #30497a;
+  border-radius: 14px;
+  padding: 18px 12px;
+  margin-bottom: 16px;
+}
+
+.small-info {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.question-value {
+  font-size: clamp(1.8rem, 5vw, 3rem);
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  margin: 2px 0 8px;
+}
+
+.mode-hint {
+  margin: 0;
+  color: #c8d8ff;
+  font-size: 0.95rem;
+}
+
+.input-section {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+input[type="text"] {
+  width: 100%;
+  border: 1px solid #3a4f7f;
+  background: #0f172b;
+  color: var(--text);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 1rem;
+  outline: none;
+}
+
+input[type="text"]:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(122, 162, 255, 0.25);
+}
+
+button {
+  border: 1px solid #4b66a3;
+  background: #2b457c;
+  color: white;
+  border-radius: 10px;
+  padding: 12px 16px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+button:hover {
+  filter: brightness(1.08);
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.secondary {
+  background: #2a3148;
+  border-color: #46506d;
+}
+
+.message-section {
+  min-height: 30px;
+  margin-bottom: 10px;
+}
+
+.message {
+  margin: 0;
+  font-weight: 600;
+}
+
+.message.ok {
+  color: var(--ok);
+}
+.message.warn {
+  color: var(--warn);
+}
+.message.bad {
+  color: var(--danger);
+}
+
+.legend-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chip {
+  display: inline-block;
+  width: 18px;
+  height: 10px;
+  border-radius: 6px;
+}
+
+.chip-time {
+  background: #58a6ff;
+}
+
+.chip-bonus {
+  background: var(--bonus);
+}
+
+.timebar-section {
+  margin-bottom: 14px;
+}
+
+.timebar-track {
+  position: relative;
+  width: 100%;
+  height: 18px;
+  background: #1b2a48;
+  border: 1px solid #375186;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.timebar-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, #42a5f5 0%, #7cc8ff 100%);
+  transform-origin: left center;
+}
+
+.bonus-marker {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--bonus);
+  box-shadow: 0 0 8px rgba(255, 220, 94, 0.8);
+  z-index: 2;
+}
+
+.controls {
+  display: flex;
+  justify-content: flex-end;
+}
+
+@media (max-width: 700px) {
+  .topbar {
+    grid-template-columns: 1fr;
+  }
+  .input-section {
+    grid-template-columns: 1fr;
+  }
+  .controls {
+    justify-content: stretch;
+  }
+  .controls button {
+    width: 100%;
+  }
+}
