@@ -5,13 +5,17 @@
   --text: #f2f6ff;
   --muted: #9fb0d0;
   --accent: #7aa2ff;
+
   --ok: #3ecf8e;
   --warn: #ffb020;
   --danger: #ff5d73;
-  --bonus: #ffdc5e;
+
   --shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
+/* =========================
+   Base
+========================= */
 * {
   box-sizing: border-box;
 }
@@ -36,9 +40,12 @@ body {
   padding: 20px;
 }
 
+/* =========================
+   Top bar
+========================= */
 .topbar {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr)); /* Niveau | Vies | Score */
   gap: 12px;
   margin-bottom: 16px;
 }
@@ -51,6 +58,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  min-height: 58px;
 }
 
 .label {
@@ -63,6 +71,55 @@ body {
   font-weight: 700;
 }
 
+/* =========================
+   Lives as 9 cells
+========================= */
+.lives-block {
+  gap: 10px;
+}
+
+.lives-grid {
+  display: grid;
+  grid-template-columns: repeat(9, 10px);
+  gap: 4px;
+  align-items: center;
+}
+
+.life-cell {
+  width: 10px;
+  height: 18px;
+  border-radius: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: transparent; /* vies manquantes */
+  transition: 0.18s ease;
+}
+
+/* vies disponibles: rouge */
+.life-cell.on {
+  background: rgba(255, 93, 115, 0.95);
+  border-color: rgba(255, 120, 140, 0.95);
+  box-shadow: 0 0 8px rgba(255, 93, 115, 0.45);
+}
+
+/* vies manquantes: transparent */
+.life-cell.off {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.16);
+  box-shadow: none;
+}
+
+/* 9e case allumée: jaune brillante */
+.life-cell.cap {
+  background: rgba(255, 220, 94, 0.98) !important;
+  border-color: rgba(255, 235, 160, 1) !important;
+  box-shadow:
+    0 0 9px rgba(255, 220, 94, 0.95),
+    0 0 16px rgba(255, 220, 94, 0.55);
+}
+
+/* =========================
+   Progression niveau
+========================= */
 .progress-section {
   margin-bottom: 18px;
 }
@@ -92,6 +149,9 @@ body {
   box-shadow: 0 0 10px rgba(122, 162, 255, 0.55);
 }
 
+/* =========================
+   Question
+========================= */
 .question-section {
   text-align: center;
   background: #16203a;
@@ -120,6 +180,9 @@ body {
   font-size: 0.95rem;
 }
 
+/* =========================
+   Input
+========================= */
 .input-section {
   display: grid;
   grid-template-columns: 1fr auto;
@@ -167,6 +230,9 @@ button:disabled {
   border-color: #46506d;
 }
 
+/* =========================
+   Message
+========================= */
 .message-section {
   min-height: 30px;
   margin-bottom: 10px;
@@ -180,13 +246,18 @@ button:disabled {
 .message.ok {
   color: var(--ok);
 }
+
 .message.warn {
   color: var(--warn);
 }
+
 .message.bad {
   color: var(--danger);
 }
 
+/* =========================
+   Legend
+========================= */
 .legend-section {
   display: flex;
   flex-wrap: wrap;
@@ -214,9 +285,12 @@ button:disabled {
 }
 
 .chip-bonus {
-  background: var(--bonus);
+  background: #ffdc5e;
 }
 
+/* =========================
+   Time bar (segmented bonus)
+========================= */
 .timebar-section {
   margin-bottom: 14px;
 }
@@ -224,94 +298,105 @@ button:disabled {
 .timebar-track {
   position: relative;
   width: 100%;
-  height: 18px;
-  background: #1b2a48;
+  height: 22px;
   border: 1px solid #375186;
   border-radius: 999px;
-  overflow: hidden;
+  overflow: visible; /* halo externe visible */
+  background: #14213d;
 }
 
+/* Temps restant (se vide de droite vers gauche via scaleX) */
 .timebar-fill {
   position: absolute;
-  left: 0;
-  top: 0;
-  height: 100%;
-  width: 100%;
+  inset: 0;
+  border-radius: 999px;
   background: linear-gradient(90deg, #42a5f5 0%, #7cc8ff 100%);
   transform-origin: left center;
+  z-index: 1;
 }
 
-.bonus-marker {
+/* Couche des segments bonus calibrés 78->100 */
+.bonus-bands {
   position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 4px;
-  background: var(--bonus);
-  box-shadow: 0 0 8px rgba(255, 220, 94, 0.8);
-  z-index: 2;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
 }
 
+/* Segment = morceau intégré à la barre (pas un bouton) */
+.bonus-band {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  box-sizing: border-box;
+  border-radius: 3px;
+
+  /* "barre cassée en morceaux" */
+  margin-left: 1px;
+  margin-right: 1px;
+
+  background: rgba(92, 155, 240, 0.32);
+  border: 1px solid rgba(35, 63, 112, 0.66);
+
+  transition: box-shadow 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+}
+
+/* actif = halo EXTERNE */
+.bonus-band.on {
+  box-shadow:
+    0 0 0 1px rgba(255, 220, 94, 0.36),
+    0 0 10px rgba(255, 220, 94, 0.78),
+    0 0 16px rgba(255, 220, 94, 0.42);
+  background: rgba(120, 185, 255, 0.44);
+  border-color: rgba(130, 185, 255, 0.75);
+}
+
+/* inactif = plus de halo */
+.bonus-band.off {
+  box-shadow: none;
+  background: rgba(30, 52, 92, 0.40);
+  border-color: rgba(36, 61, 106, 0.56);
+}
+
+/* =========================
+   Controls
+========================= */
 .controls {
   display: flex;
   justify-content: flex-end;
 }
 
+/* =========================
+   Responsive
+========================= */
 @media (max-width: 700px) {
   .topbar {
     grid-template-columns: 1fr;
   }
+
+  .status-block {
+    min-height: 54px;
+  }
+
   .input-section {
     grid-template-columns: 1fr;
   }
+
   .controls {
     justify-content: stretch;
   }
+
   .controls button {
     width: 100%;
   }
-}
-.timebar-row {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 10px;
-  align-items: center;
-}
 
-.bonus-cells {
-  display: grid;
-  grid-template-columns: repeat(10, 10px);
-  gap: 4px;
-  align-items: center;
-}
-
-.bonus-cell {
-  width: 10px;
-  height: 18px;
-  border-radius: 2px;
-  border: 1px solid #2f4674;
-  background: #14213d;
-  transition: 0.2s ease;
-}
-
-.bonus-cell.on {
-  background: #7cc8ff;
-  border-color: #8ed3ff;
-  box-shadow: 0 0 8px rgba(124, 200, 255, 0.6);
-}
-
-.bonus-cell.off {
-  background: #0f1830;
-  border-color: #263a61;
-  box-shadow: none;
-}
-
-@media (max-width: 700px) {
-  .timebar-row {
-    grid-template-columns: 1fr;
-    gap: 8px;
+  .lives-grid {
+    grid-template-columns: repeat(9, 9px);
+    gap: 3px;
   }
 
-  .bonus-cells {
-    justify-content: end;
+  .life-cell {
+    width: 9px;
+    height: 16px;
   }
 }

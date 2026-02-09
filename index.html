@@ -16,7 +16,7 @@
 
       <div class="status-block lives-block">
         <span class="label">Vies</span>
-        <span id="livesValue" class="value">5</span>
+        <div id="livesGrid" class="lives-grid" aria-label="Vies"></div>
       </div>
 
       <div class="status-block score-block">
@@ -48,7 +48,7 @@
     </section>
 
     <section class="message-section">
-      <p id="message" class="message"></p>
+      <p id="message" class="message" aria-live="polite"></p>
     </section>
 
     <section class="legend-section">
@@ -58,27 +58,16 @@
       </div>
       <div class="legend-item">
         <span class="chip chip-bonus"></span>
-        <span>Zone bonus (réponse rapide = +1 vie)</span>
+        <span>Zone bonus active</span>
       </div>
     </section>
 
-    <!--section class="timebar-section">
-      <div id="timeBarTrack" class="timebar-track">
-        <div id="bonusMarker" class="bonus-marker"></div>
-        <div id="timeBarFill" class="timebar-fill"></div>
-      </div>
-    </section-->
-
     <section class="timebar-section">
-  <div class="timebar-row">
-    <div id="timeBarTrack" class="timebar-track">
-      <div id="bonusMarker" class="bonus-marker"></div>
-      <div id="timeBarFill" class="timebar-fill"></div>
-    </div>
-
-    <div id="bonusCells" class="bonus-cells" aria-label="Stages bonus"></div>
-  </div>
-</section>
+      <div id="timeBarTrack" class="timebar-track" aria-label="Barre de temps">
+        <div id="timeBarFill" class="timebar-fill"></div>
+        <div id="bonusBands" class="bonus-bands" aria-hidden="true"></div>
+      </div>
+    </section>
 
     <section class="controls">
       <button id="restartBtn" type="button" class="secondary">Recommencer</button>
