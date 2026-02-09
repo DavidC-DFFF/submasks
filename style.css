@@ -270,3 +270,48 @@ button:disabled {
     width: 100%;
   }
 }
+.timebar-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.bonus-cells {
+  display: grid;
+  grid-template-columns: repeat(10, 10px);
+  gap: 4px;
+  align-items: center;
+}
+
+.bonus-cell {
+  width: 10px;
+  height: 18px;
+  border-radius: 2px;
+  border: 1px solid #2f4674;
+  background: #14213d;
+  transition: 0.2s ease;
+}
+
+.bonus-cell.on {
+  background: #7cc8ff;
+  border-color: #8ed3ff;
+  box-shadow: 0 0 8px rgba(124, 200, 255, 0.6);
+}
+
+.bonus-cell.off {
+  background: #0f1830;
+  border-color: #263a61;
+  box-shadow: none;
+}
+
+@media (max-width: 700px) {
+  .timebar-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .bonus-cells {
+    justify-content: end;
+  }
+}

@@ -4,21 +4,28 @@
  * Subnet Sprint
  * - Conversion masque décimal <-> CIDR
  * - Vies, timer, bonus de vitesse, niveaux
+ * - NIVEAU = temps total
+ * - QUESTIONS DANS LE NIVEAU = bonus évolutif (80% -> 95%)
+ * - Visualisation bonus : 10 cases qui s'éteignent dans le niveau
  */
 
-const MIN_CIDR = 1;
-const MAX_CIDR = 30;
-const START_LIVES = 5;
-const MAX_LIVES = 9;
+const MIN_CIDR = 8;
+const MAX_CIDR = 30; 
 
-const LEVEL_UP_EVERY = 10; // 10 bonnes réponses par niveau
-const BASE_TIME_MS = 60000; // durée initiale
-const MIN_TIME_MS = 5000;   // durée minimale
-const TIME_REDUCTION_PER_LEVEL = 3000; // réduit à chaque niveau
+const START_LIVES = 3; 
+const MAX_LIVES = 9; 
 
-const BONUS_MARKER_RATIO_START = 0.30; // 70% du temps (réponse avant = bonus)
-const BONUS_MARKER_RATIO_MIN = 0.10;   // zone bonus plus exigeante avec les niveaux
-const BONUS_MARKER_REDUCTION_PER_LEVEL = 0.02;
+const LEVEL_UP_EVERY = 10;  // 10 bonnes réponses par niveau 
+
+// Temps : géré par le niveau 
+const BASE_TIME_MS = 60000; 
+const MIN_TIME_MS = 5000; 
+const TIME_REDUCTION_PER_LEVEL = 4000; 
+
+// Bonus : géré par la progression DANS le niveau 
+// Q1 = 80% du temps restant requis, Q10 = 95% 
+const BONUS_RATIO_START_IN_LEVEL = 0.80; 
+const BONUS_RATIO_END_IN_LEVEL = 0.95;
 
 const questionValueEl = document.getElementById("questionValue");
 const questionModeEl = document.getElementById("questionMode");
@@ -29,21 +36,22 @@ const messageEl = document.getElementById("message");
 
 const levelValueEl = document.getElementById("levelValue");
 const livesValueEl = document.getElementById("livesValue");
-const scoreValueEl = document.getElementById("scoreValue");
 const levelProgressEl = document.getElementById("levelProgress");
 
 const timeBarFillEl = document.getElementById("timeBarFill");
 const bonusMarkerEl = document.getElementById("bonusMarker");
+const bonusCellsEl = document.getElementById("bonusCells");
 
 const state = {
   level: 1,
   lives: START_LIVES,
-  score: 0,
-  correctInLevel: 0,
+  correctInLevel: 0, // 0..9
 
   currentQuestion: null, // { givenType, givenValue, expected }
+
   timeLimitMs: BASE_TIME_MS,
-  bonusThresholdMs: Math.floor(BASE_TIME_MS * BONUS_MARKER_RATIO_START),
+  bonusRatioCurrent: BONUS_RATIO_START_IN_LEVEL,
+  bonusThresholdMs: Math.floor(BASE_TIME_MS * BONUS_RATIO_START_IN_LEVEL), // ms de temps restant requis
 
   startTimestamp: 0,
   timerFrameId: null,
@@ -53,6 +61,7 @@ const state = {
 
 function init() {
   buildProgressDots();
+  buildBonusCells();
   bindEvents();
   resetGame();
 }
@@ -61,9 +70,7 @@ function bindEvents() {
   validateBtnEl.addEventListener("click", submitAnswer);
 
   answerInputEl.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-      submitAnswer();
-    }
+    if (e.key === "Enter") submitAnswer();
   });
 
   restartBtnEl.addEventListener("click", resetGame);
@@ -85,23 +92,49 @@ function updateProgressDots() {
   });
 }
 
+function buildBonusCells() {
+  if (!bonusCellsEl) return;
+  bonusCellsEl.innerHTML = "";
+  for (let i = 0; i < LEVEL_UP_EVERY; i += 1) {
+    const c = document.createElement("div");
+    c.className = "bonus-cell on";
+    bonusCellsEl.appendChild(c);
+  }
+}
+
+/**
+ * 10 cases au départ, puis extinction progressive avec correctInLevel.
+ * correctInLevel = 0 => 10 allumées
+ * correctInLevel = 1 => 9 allumées
+ * ...
+ * correctInLevel = 9 => 1 allumée
+ */
+function updateBonusCells() {
+  if (!bonusCellsEl) return;
+  const cells = bonusCellsEl.querySelectorAll(".bonus-cell");
+  const litCount = Math.max(0, LEVEL_UP_EVERY - state.correctInLevel);
+
+  cells.forEach((cell, idx) => {
+    const on = idx < litCount;
+    cell.classList.toggle("on", on);
+    cell.classList.toggle("off", !on);
+  });
+}
+
 function setMessage(text, type = "") {
   messageEl.textContent = text;
   messageEl.className = "message";
-  if (type) {
-    messageEl.classList.add(type);
-  }
+  if (type) messageEl.classList.add(type);
 }
 
 function updateHUD() {
   levelValueEl.textContent = String(state.level);
   livesValueEl.textContent = String(state.lives);
-  scoreValueEl.textContent = String(state.score);
   updateProgressDots();
+  updateBonusCells();
 }
 
 function cidrToDecimal(cidr) {
-  // cidr dans [0..32]
   const octets = [0, 0, 0, 0];
   let remaining = cidr;
 
@@ -123,8 +156,10 @@ function normalizeCidrInput(raw) {
   const txt = raw.trim();
   const m = txt.match(/^\/?\s*(\d{1,2})\s*$/);
   if (!m) return null;
+
   const n = Number(m[1]);
-  if (!Number.isInteger(n) || n < 0 || n > 32) return null;
+  if (!Number.isInteger(n) || n < MIN_CIDR || n > MAX_CIDR) return null;
+
   return `/${n}`;
 }
 
@@ -149,7 +184,6 @@ function pickRandomCidr() {
 function generateQuestion() {
   const cidr = pickRandomCidr();
   const dec = cidrToDecimal(cidr);
-
   const givenAsCidr = Math.random() < 0.5;
 
   if (givenAsCidr) {
@@ -180,24 +214,42 @@ function renderQuestion() {
   }
 }
 
-function computeTimingForLevel(level) {
-  const timeLimit = Math.max(
+/**
+ * Temps total d'un round selon le niveau
+ */
+function computeTimeForLevel(level) {
+  return Math.max(
     MIN_TIME_MS,
     BASE_TIME_MS - (level - 1) * TIME_REDUCTION_PER_LEVEL
   );
-
-  const bonusRatio = Math.max(
-    BONUS_MARKER_RATIO_MIN,
-    BONUS_MARKER_RATIO_START - (level - 1) * BONUS_MARKER_REDUCTION_PER_LEVEL
-  );
-
-  const bonusThreshold = Math.floor(timeLimit * bonusRatio);
-  return { timeLimit, bonusThreshold };
 }
 
+/**
+ * Bonus ratio selon la progression dans le niveau :
+ * - correctInLevel = 0 (question 1) => 80%
+ * - correctInLevel = 9 (question 10) => 95%
+ */
+function computeBonusRatioInLevel(correctInLevel) {
+  if (LEVEL_UP_EVERY <= 1) return BONUS_RATIO_END_IN_LEVEL;
+
+  const t = correctInLevel / (LEVEL_UP_EVERY - 1); // 0..1
+  return BONUS_RATIO_START_IN_LEVEL +
+    (BONUS_RATIO_END_IN_LEVEL - BONUS_RATIO_START_IN_LEVEL) * t;
+}
+
+function updateBonusForCurrentRound() {
+  state.timeLimitMs = computeTimeForLevel(state.level);
+  state.bonusRatioCurrent = computeBonusRatioInLevel(state.correctInLevel);
+  state.bonusThresholdMs = Math.floor(state.timeLimitMs * state.bonusRatioCurrent);
+}
+
+/**
+ * Le marqueur indique le seuil de TEMPS RESTANT requis pour bonus.
+ * Si remaining >= threshold => bonus.
+ */
 function updateBonusMarker() {
-  const ratio = state.bonusThresholdMs / state.timeLimitMs;
-  bonusMarkerEl.style.left = `${Math.max(0, Math.min(1, ratio)) * 100}%`;
+  const ratioRemainingNeeded = state.bonusThresholdMs / state.timeLimitMs;
+  bonusMarkerEl.style.left = `${Math.max(0, Math.min(1, ratioRemainingNeeded)) * 100}%`;
 }
 
 function startRound() {
@@ -207,9 +259,7 @@ function startRound() {
   answerInputEl.value = "";
   answerInputEl.focus();
 
-  const t = computeTimingForLevel(state.level);
-  state.timeLimitMs = t.timeLimit;
-  state.bonusThresholdMs = t.bonusThreshold;
+  updateBonusForCurrentRound();
   updateBonusMarker();
 
   state.currentQuestion = generateQuestion();
@@ -247,32 +297,31 @@ function isAnswerCorrect(userRaw) {
   const q = state.currentQuestion;
 
   if (q.givenType === "cidr") {
-    // attendu décimal
     const normalized = normalizeDecimalInput(userRaw);
     return normalized !== null && normalized === q.expected;
   }
 
-  // attendu CIDR
   const normalized = normalizeCidrInput(userRaw);
   return normalized !== null && normalized === q.expected;
 }
 
-function onCorrect(elapsedMs) {
-  state.score += 1;
+function onCorrect(remainingMs) {
   state.correctInLevel += 1;
 
-  // Bonus de vitesse : réponse avant bonusThreshold
-  if (elapsedMs <= state.bonusThresholdMs && state.lives < MAX_LIVES) {
+  if (remainingMs >= state.bonusThresholdMs && state.lives < MAX_LIVES) {
     state.lives += 1;
-    setMessage("✅ Correct + Bonus vitesse : +1 vie", "ok");
+    setMessage(
+      `✅ Correct + Bonus vitesse : +1 vie (seuil ${(state.bonusRatioCurrent * 100).toFixed(0)}%)`,
+      "ok"
+    );
   } else {
     setMessage("✅ Correct", "ok");
   }
 
   if (state.correctInLevel >= LEVEL_UP_EVERY) {
     state.level += 1;
-    state.correctInLevel = 0;
-    setMessage(`🎉 Niveau ${state.level} !`, "ok");
+    state.correctInLevel = 0; // reset progression bonus dans le niveau
+    setMessage("🎉 Niveau suivant ! Temps réduit, bonus réinitialisé.", "ok");
   }
 
   updateHUD();
@@ -281,10 +330,11 @@ function onCorrect(elapsedMs) {
 
 function onWrong() {
   state.lives -= 1;
+
   if (state.lives <= 0) {
     state.lives = 0;
     updateHUD();
-    endGame(`❌ Mauvaise réponse. Plus de vies. Partie terminée.`);
+    endGame("❌ Mauvaise réponse. Plus de vies. Partie terminée.");
     return;
   }
 
@@ -295,6 +345,7 @@ function onWrong() {
 
 function onTimeout() {
   state.lives -= 1;
+
   if (state.lives <= 0) {
     state.lives = 0;
     updateHUD();
@@ -320,15 +371,17 @@ function submitAnswer() {
   stopTimer();
 
   const elapsed = performance.now() - state.startTimestamp;
+  const remaining = Math.max(0, state.timeLimitMs - elapsed);
   const ok = isAnswerCorrect(answer);
 
-  if (ok) onCorrect(elapsed);
+  if (ok) onCorrect(remaining);
   else onWrong();
 }
 
 function nextRoundWithDelay(ms) {
   answerInputEl.disabled = true;
   validateBtnEl.disabled = true;
+
   setTimeout(() => {
     if (!state.gameOver) startRound();
   }, ms);
@@ -338,9 +391,11 @@ function endGame(text) {
   state.gameOver = true;
   state.locked = true;
   stopTimer();
+
   timeBarFillEl.style.transform = "scaleX(0)";
   answerInputEl.disabled = true;
   validateBtnEl.disabled = true;
+
   setMessage(text, "bad");
 }
 
@@ -349,7 +404,6 @@ function resetGame() {
 
   state.level = 1;
   state.lives = START_LIVES;
-  state.score = 0;
   state.correctInLevel = 0;
   state.currentQuestion = null;
   state.gameOver = false;
