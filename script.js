@@ -12,13 +12,13 @@ const START_LIVES = 5;
 const MAX_LIVES = 9;
 
 const LEVEL_UP_EVERY = 10; // 10 bonnes réponses par niveau
-const BASE_TIME_MS = 20000; // durée initiale
+const BASE_TIME_MS = 60000; // durée initiale
 const MIN_TIME_MS = 5000;   // durée minimale
-const TIME_REDUCTION_PER_LEVEL = 700; // réduit à chaque niveau
+const TIME_REDUCTION_PER_LEVEL = 3000; // réduit à chaque niveau
 
-const BONUS_MARKER_RATIO_START = 0.70; // 32% du temps (réponse avant = bonus)
-const BONUS_MARKER_RATIO_MIN = 0.01;   // zone bonus plus exigeante avec les niveaux
-const BONUS_MARKER_REDUCTION_PER_LEVEL = 0.012;
+const BONUS_MARKER_RATIO_START = 0.30; // 70% du temps (réponse avant = bonus)
+const BONUS_MARKER_RATIO_MIN = 0.10;   // zone bonus plus exigeante avec les niveaux
+const BONUS_MARKER_REDUCTION_PER_LEVEL = 0.02;
 
 const questionValueEl = document.getElementById("questionValue");
 const questionModeEl = document.getElementById("questionMode");
