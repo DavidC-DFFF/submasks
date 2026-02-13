@@ -47,6 +47,12 @@ const BONUS_BANDS = [
   [96, 100]
 ];
 
+// Theme (light/dark)
+const THEME_STORAGE_KEY = "subnet_sprint_theme";
+
+// Eviter les repetitions de NetID sur les N dernieres questions
+const RECENT_NETID_WINDOW = 3;
+
 // ==============================
 // DOM
 // ==============================
@@ -61,9 +67,13 @@ const levelValueEl = document.getElementById("levelValue");
 const scoreValueEl = document.getElementById("scoreValue");
 const livesGridEl = document.getElementById("livesGrid");
 const levelProgressEl = document.getElementById("levelProgress");
+const scoreMultiplierEl = document.getElementById("scoreMultiplier");
+const infoPanelEl = document.getElementById("infoPanel");
+const infoToggleBtnEl = document.getElementById("infoToggle");
 
 const timeBarFillEl = document.getElementById("timeBarFill");
 const bonusBandsEl = document.getElementById("bonusBands");
+const themeToggleBtnEl = document.getElementById("themeToggle");
 
 // ==============================
 // State
@@ -75,10 +85,15 @@ const state = {
   correctInLevel: 0, // 0..9
 
   currentQuestion: null, // { givenType, givenValue, expected }
+  recentCidrs: [], // evite les masques identiques sur les N dernieres questions
 
   timeLimitMs: BASE_TIME_MS,
   bonusWindowRatioCurrent: BONUS_WINDOW_START_RATIO,
   bonusWindowMs: Math.floor(BASE_TIME_MS * BONUS_WINDOW_START_RATIO),
+
+  gameStarted: false,
+  paused: false,
+  pausedRemainingMs: null,
 
   startTimestamp: 0,
   timerFrameId: null,
@@ -90,6 +105,7 @@ const state = {
 // Init / Events
 // ==============================
 function init() {
+  initTheme();
   buildLivesGrid();
   buildProgressDots();
   buildBonusBands();
@@ -104,7 +120,110 @@ function bindEvents() {
     if (e.key === "Enter") submitAnswer();
   });
 
-  restartBtnEl.addEventListener("click", resetGame);
+  restartBtnEl.addEventListener("click", handleControlButton);
+
+  if (infoToggleBtnEl) {
+    infoToggleBtnEl.addEventListener("click", toggleInfoPanel);
+  }
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") setInfoPanelOpen(false);
+  });
+}
+
+function setInfoPanelOpen(isOpen) {
+  if (!infoPanelEl) return;
+  infoPanelEl.classList.toggle("is-open", isOpen);
+
+  if (infoToggleBtnEl) {
+    infoToggleBtnEl.setAttribute("aria-expanded", isOpen ? "true" : "false");
+    infoToggleBtnEl.setAttribute("aria-label", isOpen ? "Fermer l'aide" : "Ouvrir l'aide");
+  }
+}
+
+function toggleInfoPanel() {
+  if (!infoPanelEl) return;
+  setInfoPanelOpen(!infoPanelEl.classList.contains("is-open"));
+}
+
+function updateControlButton() {
+  if (!restartBtnEl) return;
+
+  let label = "START";
+  if (state.gameOver) {
+    label = "RESTART";
+  } else if (state.gameStarted && !state.paused) {
+    label = "PAUSE";
+  }
+
+  restartBtnEl.textContent = label;
+}
+
+function setPausedUI(isPaused) {
+  document.body.classList.toggle("is-paused", isPaused);
+
+  if (answerInputEl) answerInputEl.disabled = isPaused;
+  if (validateBtnEl) validateBtnEl.disabled = isPaused;
+}
+
+function startGame() {
+  if (state.gameOver) return;
+  state.gameStarted = true;
+  state.paused = false;
+  state.pausedRemainingMs = null;
+  updateControlButton();
+  setMessage("Pret ? Convertis le masque affiche.", "");
+  startRound();
+}
+
+function pauseGame() {
+  if (!state.gameStarted || state.gameOver || state.paused || state.locked) return;
+
+  state.paused = true;
+  state.pausedRemainingMs = getRemainingMs();
+  stopTimer();
+  setPausedUI(true);
+  updateControlButton();
+}
+
+function resumeGame() {
+  if (!state.paused || state.gameOver) return;
+
+  state.paused = false;
+  setPausedUI(false);
+
+  // Change la question pour eviter la memorisation pendant la pause.
+  state.currentQuestion = generateQuestion();
+  renderQuestion();
+
+  const remaining = Math.max(0, state.pausedRemainingMs ?? state.timeLimitMs);
+  state.pausedRemainingMs = null;
+  state.startTimestamp = performance.now() - (state.timeLimitMs - remaining);
+  if (state.timerFrameId) cancelAnimationFrame(state.timerFrameId);
+  state.timerFrameId = requestAnimationFrame(tickTimer);
+
+  if (answerInputEl) answerInputEl.focus();
+  updateControlButton();
+}
+
+function handleControlButton() {
+  if (state.gameOver) {
+    resetGame();
+    startGame();
+    return;
+  }
+
+  if (!state.gameStarted) {
+    startGame();
+    return;
+  }
+
+  if (state.paused) {
+    resumeGame();
+    return;
+  }
+
+  pauseGame();
 }
 
 // ==============================
@@ -135,12 +254,9 @@ function updateLivesGrid() {
     cell.classList.toggle("on", isOn);
     cell.classList.toggle("off", !isOn);
 
-    // 9e case (index 8) jaune brillante lorsqu'elle est allumée
-    if (idx === MAX_LIVES - 1) {
-      cell.classList.toggle("cap", isOn);
-    } else {
-      cell.classList.remove("cap");
-    }
+    // 9e case (index 8) = case "cap" (x2), qu'elle soit allumee ou eteinte
+    const isCap = idx === MAX_LIVES - 1;
+    cell.classList.toggle("cap", isCap);
   });
 }
 
@@ -196,6 +312,66 @@ function updateHUD() {
   updateLivesGrid();
   updateProgressDots();
   updateBonusBandsByStage(state.correctInLevel);
+
+  // Affiche x2 quand la 9e vie est atteinte (mode score x2)
+  if (scoreMultiplierEl) {
+    const isCap = state.lives >= MAX_LIVES;
+    scoreMultiplierEl.classList.toggle("is-hidden", !isCap);
+    scoreMultiplierEl.setAttribute("aria-hidden", isCap ? "false" : "true");
+  }
+
+  updateControlButton();
+}
+
+// ==============================
+// Theme (light/dark)
+// ==============================
+function getStoredTheme() {
+  try {
+    return localStorage.getItem(THEME_STORAGE_KEY);
+  } catch (err) {
+    return null;
+  }
+}
+
+function setStoredTheme(theme) {
+  try {
+    localStorage.setItem(THEME_STORAGE_KEY, theme);
+  } catch (err) {
+    // ignore storage errors (private mode, blocked storage, etc.)
+  }
+}
+
+function getPreferredTheme() {
+  const stored = getStoredTheme();
+  if (stored === "light" || stored === "dark") return stored;
+
+  if (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches) {
+    return "light";
+  }
+  return "dark";
+}
+
+function applyTheme(theme) {
+  const isLight = theme === "light";
+  document.body.classList.toggle("theme-light", isLight);
+
+  if (!themeToggleBtnEl) return;
+  themeToggleBtnEl.textContent = isLight ? "Sombre" : "Clair";
+  themeToggleBtnEl.setAttribute("aria-pressed", isLight ? "true" : "false");
+  themeToggleBtnEl.setAttribute("aria-label", isLight ? "Activer le mode sombre" : "Activer le mode clair");
+}
+
+function initTheme() {
+  const initialTheme = getPreferredTheme();
+  applyTheme(initialTheme);
+
+  if (!themeToggleBtnEl) return;
+  themeToggleBtnEl.addEventListener("click", () => {
+    const nextTheme = document.body.classList.contains("theme-light") ? "dark" : "light";
+    applyTheme(nextTheme);
+    setStoredTheme(nextTheme);
+  });
 }
 
 // ==============================
@@ -249,9 +425,19 @@ function pickRandomCidr() {
 }
 
 function generateQuestion() {
-  const cidr = pickRandomCidr();
+  // Evite les repetitions de NetID sur les N dernieres questions
+  let cidr = pickRandomCidr();
+  if (MIN_CIDR !== MAX_CIDR) {
+    while (state.recentCidrs.includes(cidr)) {
+      cidr = pickRandomCidr();
+    }
+  }
   const dec = cidrToDecimal(cidr);
   const givenAsCidr = Math.random() < 0.5;
+  state.recentCidrs.push(cidr);
+  if (state.recentCidrs.length > RECENT_NETID_WINDOW) {
+    state.recentCidrs.shift();
+  }
 
   if (givenAsCidr) {
     return { givenType: "cidr", givenValue: `/${cidr}`, expected: dec };
@@ -323,7 +509,7 @@ function startRound() {
 }
 
 function tickTimer(now) {
-  if (state.gameOver || state.locked) return;
+  if (state.gameOver || state.locked || state.paused) return;
 
   const remaining = getRemainingMs(now);
   const ratioRemaining = remaining / state.timeLimitMs;
@@ -447,7 +633,7 @@ function onTimeout() {
 }
 
 function submitAnswer() {
-  if (state.gameOver || state.locked) return;
+  if (state.gameOver || state.locked || state.paused) return;
 
   const answer = (answerInputEl?.value || "").trim();
   if (!answer) {
@@ -487,6 +673,7 @@ function endGame(text) {
   if (validateBtnEl) validateBtnEl.disabled = true;
 
   setMessage(text, "bad");
+  updateControlButton();
 }
 
 function resetGame() {
@@ -497,12 +684,24 @@ function resetGame() {
   state.lives = START_LIVES;
   state.correctInLevel = 0;
   state.currentQuestion = null;
+  state.recentCidrs = [];
+  state.gameStarted = false;
+  state.paused = false;
+  state.pausedRemainingMs = null;
   state.gameOver = false;
   state.locked = false;
 
+  setPausedUI(false);
+  if (answerInputEl) answerInputEl.disabled = true;
+  if (validateBtnEl) validateBtnEl.disabled = true;
+
+  if (questionValueEl) questionValueEl.textContent = "--";
+  if (questionModeEl) questionModeEl.textContent = "Appuie sur START pour jouer";
+  if (answerInputEl) answerInputEl.placeholder = "Ta réponse ici (ex: 255.255.255.0 ou /24)";
+  if (timeBarFillEl) timeBarFillEl.style.transform = "scaleX(1)";
+
   updateHUD();
-  setMessage("Prêt ? Convertis le masque affiché.", "");
-  startRound();
+  setMessage("Appuie sur START pour lancer la partie.", "");
 }
 
 init();

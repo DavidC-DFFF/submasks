@@ -31,13 +31,194 @@ body {
   padding: 20px;
 }
 
-.game-wrap {
+/* =========================
+   Theme (light)
+========================= */
+body.theme-light {
+  --bg: #f4f6fb;
+  --panel: #ffffff;
+  --panel-2: #f2f5fb;
+  --text: #1d2438;
+  --muted: #5e6b86;
+  --accent: #2d6bff;
+  --shadow: 0 10px 30px rgba(20, 30, 50, 0.12);
+
+  background: radial-gradient(circle at top, #f6f8ff 0%, var(--bg) 65%);
+}
+
+body.theme-light .game-wrap {
+  background: linear-gradient(180deg, var(--panel) 0%, #e8edf8 100%);
+  border-color: #d4dff1;
+}
+
+body.theme-light .status-block {
+  border-color: #cfd8ea;
+}
+
+body.theme-light .step {
+  border-color: #b5c4e4;
+  background: #dfe8fb;
+}
+
+body.theme-light .question-section {
+  background: #f3f6fd;
+  border-color: #cbd6ee;
+}
+
+body.theme-light .mode-hint {
+  color: #2d3b5a;
+}
+
+body.theme-light input[type="text"] {
+  background: #ffffff;
+  border-color: #c6d2ea;
+  color: var(--text);
+}
+
+body.theme-light input[type="text"]:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(45, 107, 255, 0.2);
+}
+
+body.theme-light button {
+  background: #2d6bff;
+  border-color: #1f57d6;
+}
+
+body.theme-light .secondary {
+  background: #eef2fb;
+  border-color: #c7d2ea;
+  color: #2a3a59;
+}
+
+body.theme-light .timebar-track {
+  border-color: #c5d4ef;
+  background: #e9f0ff;
+}
+
+body.theme-light .bonus-band {
+  background: rgba(70, 120, 210, 0.2);
+  border-color: rgba(70, 110, 190, 0.35);
+}
+
+body.theme-light .bonus-band.off {
+  background: rgba(70, 90, 140, 0.14);
+  border-color: rgba(70, 90, 140, 0.22);
+}
+
+body.theme-light .life-cell {
+  border-color: rgba(45, 60, 95, 0.25);
+}
+
+body.theme-light .life-cell.off {
+  background: rgba(45, 60, 95, 0.06);
+  border-color: rgba(45, 60, 95, 0.32);
+  box-shadow: inset 0 0 0 1px rgba(45, 60, 95, 0.08);
+}
+
+/* 9e vie en mode clair (allumee): liseret fin jaune fonce */
+body.theme-light .life-cell.cap.on {
+  box-shadow:
+    inset 0 0 0 1px rgba(175, 135, 20, 0.95),
+    0 0 6px rgba(255, 220, 94, 0.45);
+}
+
+/* 9e case eteinte (mode clair): bleu moyen */
+body.theme-light .life-cell.cap.off {
+  background: rgba(70, 120, 210, 0.14);
+  border-color: rgba(70, 120, 210, 0.5);
+  box-shadow:
+    inset 0 0 0 1px rgba(70, 120, 210, 0.18),
+    0 0 4px rgba(70, 120, 210, 0.2);
+}
+
+/* Conteneur de scene pour positionner le slideout sous la fenetre */
+.game-stage {
+  position: relative;
   width: min(920px, 100%);
+}
+
+.game-wrap {
+  width: 100%;
   background: linear-gradient(180deg, var(--panel) 0%, #131a2b 100%);
   border: 1px solid #2b3960;
   border-radius: 18px;
   box-shadow: var(--shadow);
   padding: 20px;
+  position: relative;
+  z-index: 2;
+}
+
+/* =========================
+   Slideout panel (Aide)
+========================= */
+.info-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: min(320px, 86vw);
+  padding: 28px 20px;
+  background: linear-gradient(180deg, #141b2e 0%, #0f1424 100%);
+  color: var(--text);
+  border-left: 1px solid #2b3960;
+  box-shadow: -10px 0 25px rgba(0, 0, 0, 0.35);
+  transform: translateX(0);
+  transition: transform 0.25s ease;
+  z-index: 1; /* derriere la fenetre de jeu */
+}
+
+.info-panel.is-open {
+  transform: translateX(100%);
+}
+
+.info-toggle {
+  position: absolute;
+  right: -32px;
+  top: 140px;
+  width: 32px;
+  height: 96px;
+  padding: 0;
+  border-radius: 0 10px 10px 0;
+  border: 1px solid #3a4f7f;
+  background: linear-gradient(180deg, #22325a 0%, #1a2442 100%);
+  color: #d9e5ff;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  writing-mode: horizontal-tb;
+  transform: none;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 0 64%, 10px 50%, 0 36%);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.35);
+}
+
+.info-toggle:hover {
+  filter: brightness(1.1);
+}
+
+.info-content h2 {
+  margin: 0 0 8px;
+  font-size: 1.05rem;
+}
+
+.info-content p {
+  margin: 0 0 10px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+body.theme-light .info-panel {
+  background: linear-gradient(180deg, #f7f9ff 0%, #e6edf9 100%);
+  border-left-color: #cbd6ee;
+  box-shadow: -10px 0 22px rgba(30, 50, 90, 0.12);
+}
+
+body.theme-light .info-toggle {
+  background: linear-gradient(180deg, #f1f5ff 0%, #e4ecfb 100%);
+  border-color: #c6d2ea;
+  color: #2a3a59;
 }
 
 /* =========================
@@ -45,7 +226,7 @@ body {
 ========================= */
 .topbar {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr)); /* Niveau | Vies | Score */
+  grid-template-columns: repeat(4, minmax(0, 1fr)); /* Niveau | Vies | Score | Mode */
   gap: 12px;
   margin-bottom: 16px;
 }
@@ -71,6 +252,33 @@ body {
   font-weight: 700;
 }
 
+/* Badge score x2 */
+.score-multiplier {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 6px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  color: #1b1f2f;
+  background: #ffdc5e;
+  box-shadow: 0 0 8px rgba(255, 220, 94, 0.45);
+  vertical-align: middle;
+}
+
+.score-multiplier.is-hidden {
+  display: none;
+}
+
+body.theme-light .score-multiplier {
+  color: #1f2a45;
+  background: #ffd25a;
+  box-shadow: 0 0 6px rgba(255, 205, 90, 0.45);
+}
+
 /* =========================
    Lives as 9 cells
 ========================= */
@@ -89,7 +297,7 @@ body {
   width: 10px;
   height: 18px;
   border-radius: 3px;
-  border: 1px solid rgba(255, 255, 255, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.28);
   background: transparent; /* vies manquantes */
   transition: 0.18s ease;
 }
@@ -103,18 +311,27 @@ body {
 
 /* vies manquantes: transparent */
 .life-cell.off {
-  background: transparent;
-  border-color: rgba(255, 255, 255, 0.16);
-  box-shadow: none;
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.32);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
 }
 
-/* 9e case allumée: jaune brillante */
-.life-cell.cap {
+/* 9e case allumee: jaune brillante */
+.life-cell.cap.on {
   background: rgba(255, 220, 94, 0.98) !important;
   border-color: rgba(255, 235, 160, 1) !important;
   box-shadow:
     0 0 9px rgba(255, 220, 94, 0.95),
     0 0 16px rgba(255, 220, 94, 0.55);
+}
+
+/* 9e case eteinte (mode sombre): bleu clair */
+.life-cell.cap.off {
+  background: rgba(120, 170, 255, 0.18);
+  border-color: rgba(120, 170, 255, 0.6);
+  box-shadow:
+    inset 0 0 0 1px rgba(120, 170, 255, 0.25),
+    0 0 4px rgba(120, 170, 255, 0.25);
 }
 
 /* =========================
@@ -174,6 +391,10 @@ body {
   margin: 2px 0 8px;
 }
 
+body.is-paused .question-value {
+  filter: blur(6px);
+}
+
 .mode-hint {
   margin: 0;
   color: #c8d8ff;
@@ -214,6 +435,13 @@ button {
   padding: 12px 16px;
   cursor: pointer;
   font-weight: 600;
+}
+
+/* Bouton de theme (top bar) */
+.theme-toggle {
+  padding: 10px 12px;
+  min-width: 86px;
+  font-size: 0.95rem;
 }
 
 button:hover {
@@ -363,7 +591,7 @@ button:disabled {
 ========================= */
 .controls {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
 }
 
 /* =========================
@@ -383,12 +611,9 @@ button:disabled {
   }
 
   .controls {
-    justify-content: stretch;
+    justify-content: center;
   }
 
-  .controls button {
-    width: 100%;
-  }
 
   .lives-grid {
     grid-template-columns: repeat(9, 9px);

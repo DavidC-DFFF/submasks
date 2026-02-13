@@ -7,8 +7,9 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <main class="game-wrap">
-    <header class="topbar">
+  <div class="game-stage">
+    <main class="game-wrap">
+      <header class="topbar">
       <div class="status-block">
         <span class="label">Niveau</span>
         <span id="levelValue" class="value">1</span>
@@ -20,8 +21,19 @@
       </div>
 
       <div class="status-block score-block">
-        <span class="label">Score</span>
+        <span class="label">
+          Score
+          <span id="scoreMultiplier" class="score-multiplier is-hidden" aria-hidden="true">x2</span>
+        </span>
         <span id="scoreValue" class="value">0</span>
+      </div>
+
+      <!-- Mode clair/sombre -->
+      <div class="status-block theme-block">
+        <span class="label">Mode</span>
+        <button id="themeToggle" type="button" class="theme-toggle" aria-pressed="false">
+          Clair
+        </button>
       </div>
     </header>
 
@@ -71,8 +83,25 @@
 
     <section class="controls">
       <button id="restartBtn" type="button" class="secondary">Recommencer</button>
-    </section>
-  </main>
+      </section>
+    </main>
+
+    <aside id="infoPanel" class="info-panel" aria-label="Aide et règles">
+      <button id="infoToggle" class="info-toggle" type="button" aria-expanded="false" aria-label="Ouvrir l'aide"></button>
+      <div class="info-content">
+        <h2>Système de points</h2>
+        <p>Bonne réponse : score += temps restant (s) × niveau.</p>
+        <p>Bonus rapide : +1 vie (si vies &lt; 9) ou score x2 (si vies = 9).</p>
+        <p>Mauvaise réponse : -1 vie + malus temps restant (s) × niveau.</p>
+        <p>Temps écoulé : -1 vie.</p>
+
+        <h2>Règles du jeu</h2>
+        <p>Une question s’affiche (CIDR ou décimal).</p>
+        <p>Donne l’équivalent dans l’autre notation.</p>
+        <p>10 bonnes réponses = niveau suivant (temps plus court).</p>
+      </div>
+    </aside>
+  </div>
 
   <script src="script.js"></script>
 </body>
