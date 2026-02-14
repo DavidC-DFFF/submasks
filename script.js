@@ -28,6 +28,9 @@ const BASE_TIME_MS = 60000;
 const MIN_TIME_MS = 5000;
 const TIME_REDUCTION_PER_LEVEL = 4000;
 
+// Malus pause (5% du temps total du niveau)
+const PAUSE_PENALTY_RATIO = 0.10;
+
 // Fenêtre bonus (durée max de réponse pour bonus) par palier dans le niveau
 // 22%,20%,...,4%
 const BONUS_WINDOW_START_RATIO = 0.22;
@@ -72,6 +75,7 @@ const infoPanelEl = document.getElementById("infoPanel");
 const infoToggleBtnEl = document.getElementById("infoToggle");
 
 const timeBarFillEl = document.getElementById("timeBarFill");
+const pausePenaltyEl = document.getElementById("pausePenalty");
 const bonusBandsEl = document.getElementById("bonusBands");
 const themeToggleBtnEl = document.getElementById("themeToggle");
 
@@ -94,6 +98,7 @@ const state = {
   gameStarted: false,
   paused: false,
   pausedRemainingMs: null,
+  pausePenaltyMs: 0,
 
   startTimestamp: 0,
   timerFrameId: null,
@@ -126,6 +131,10 @@ function bindEvents() {
     infoToggleBtnEl.addEventListener("click", toggleInfoPanel);
   }
 
+  if (infoPanelEl) {
+    infoPanelEl.addEventListener("click", handleInfoPanelClick);
+  }
+
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") setInfoPanelOpen(false);
   });
@@ -144,6 +153,13 @@ function setInfoPanelOpen(isOpen) {
 function toggleInfoPanel() {
   if (!infoPanelEl) return;
   setInfoPanelOpen(!infoPanelEl.classList.contains("is-open"));
+}
+
+function handleInfoPanelClick(event) {
+  if (!infoPanelEl) return;
+  if (!infoPanelEl.classList.contains("is-open")) return;
+  if (infoToggleBtnEl && infoToggleBtnEl.contains(event.target)) return;
+  setInfoPanelOpen(false);
 }
 
 function updateControlButton() {
@@ -166,6 +182,34 @@ function setPausedUI(isPaused) {
   if (validateBtnEl) validateBtnEl.disabled = isPaused;
 }
 
+function clearPausePenaltyMarker() {
+  if (!pausePenaltyEl) return;
+  pausePenaltyEl.classList.remove("is-active");
+  pausePenaltyEl.style.width = "0";
+  pausePenaltyEl.style.left = "0";
+}
+
+function setPausePenaltyMarker(remainingMs, penaltyMs) {
+  if (!pausePenaltyEl) return;
+  if (state.timeLimitMs <= 0) {
+    clearPausePenaltyMarker();
+    return;
+  }
+
+  const clampedPenalty = Math.max(0, Math.min(penaltyMs, remainingMs));
+  if (clampedPenalty <= 0) {
+    clearPausePenaltyMarker();
+    return;
+  }
+
+  const leftRatio = Math.max(0, (remainingMs - clampedPenalty) / state.timeLimitMs);
+  const widthRatio = clampedPenalty / state.timeLimitMs;
+
+  pausePenaltyEl.style.left = `${leftRatio * 100}%`;
+  pausePenaltyEl.style.width = `${widthRatio * 100}%`;
+  pausePenaltyEl.classList.add("is-active");
+}
+
 function startGame() {
   if (state.gameOver) return;
   state.gameStarted = true;
@@ -181,6 +225,9 @@ function pauseGame() {
 
   state.paused = true;
   state.pausedRemainingMs = getRemainingMs();
+  const rawPenaltyMs = Math.floor(state.timeLimitMs * PAUSE_PENALTY_RATIO);
+  state.pausePenaltyMs = Math.min(rawPenaltyMs, state.pausedRemainingMs);
+  setPausePenaltyMarker(state.pausedRemainingMs, state.pausePenaltyMs);
   stopTimer();
   setPausedUI(true);
   updateControlButton();
@@ -196,9 +243,17 @@ function resumeGame() {
   state.currentQuestion = generateQuestion();
   renderQuestion();
 
-  const remaining = Math.max(0, state.pausedRemainingMs ?? state.timeLimitMs);
+  const pausedRemaining = Math.max(0, state.pausedRemainingMs ?? state.timeLimitMs);
+  const penaltyMs = Math.max(0, state.pausePenaltyMs || 0);
+  const remaining = Math.max(0, pausedRemaining - penaltyMs);
   state.pausedRemainingMs = null;
+  state.pausePenaltyMs = 0;
+  clearPausePenaltyMarker();
   state.startTimestamp = performance.now() - (state.timeLimitMs - remaining);
+
+  if (timeBarFillEl && state.timeLimitMs > 0) {
+    timeBarFillEl.style.transform = `scaleX(${remaining / state.timeLimitMs})`;
+  }
   if (state.timerFrameId) cancelAnimationFrame(state.timerFrameId);
   state.timerFrameId = requestAnimationFrame(tickTimer);
 
@@ -688,10 +743,12 @@ function resetGame() {
   state.gameStarted = false;
   state.paused = false;
   state.pausedRemainingMs = null;
+  state.pausePenaltyMs = 0;
   state.gameOver = false;
   state.locked = false;
 
   setPausedUI(false);
+  clearPausePenaltyMarker();
   if (answerInputEl) answerInputEl.disabled = true;
   if (validateBtnEl) validateBtnEl.disabled = true;
 

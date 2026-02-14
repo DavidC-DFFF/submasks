@@ -345,6 +345,7 @@ body.theme-light .score-multiplier {
   color: var(--muted);
   font-size: 0.9rem;
   margin-bottom: 8px;
+  text-align: center;
 }
 
 .level-progress {
@@ -464,6 +465,7 @@ button:disabled {
 .message-section {
   min-height: 30px;
   margin-bottom: 10px;
+  text-align: center;
 }
 
 .message {
@@ -493,12 +495,15 @@ button:disabled {
   margin-bottom: 8px;
   color: var(--muted);
   font-size: 0.9rem;
+  justify-content: center;
+  text-align: center;
 }
 
 .legend-item {
   display: flex;
   align-items: center;
   gap: 8px;
+  justify-content: center;
 }
 
 .chip {
@@ -541,6 +546,25 @@ button:disabled {
   background: linear-gradient(90deg, #42a5f5 0%, #7cc8ff 100%);
   transform-origin: left center;
   z-index: 1;
+}
+
+/* Segment de malus pause (rouge) */
+.pause-penalty {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(255, 93, 115, 0.65) 0%, rgba(255, 93, 115, 0.95) 100%);
+  opacity: 0;
+  z-index: 2;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.pause-penalty.is-active {
+  opacity: 1;
 }
 
 /* Couche des segments bonus calibrés 78->100 */

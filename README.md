@@ -23,6 +23,7 @@ Mini-jeu web pour s’entraîner aux conversions de masques réseau.
   - Si vies = 9 : gain de points **x2**.
 - **Mauvaise réponse** : -1 vie + malus `temps_restant(s) × niveau`.
 - **Temps écoulé** : -1 vie.
+- **Pause** : -10% du temps total du niveau (segment rouge perdu à la reprise).
 - 10 bonnes réponses = niveau suivant (temps plus court).
 
 ## UI
@@ -35,23 +36,6 @@ Mini-jeu web pour s’entraîner aux conversions de masques réseau.
   - `78-80, 80-82, ..., 94-96, 96-100`.
   - Halo externe sur segments bonus actifs.
   - Extinction progressive selon le palier du niveau.
+  - En pause : segment rouge = malus (retiré à la reprise).
 - Bouton **Mode** (clair/sombre) en haut.
 - Indicateur **x2** à côté de “Score” quand la 9e vie est atteinte.
-
-## Constantes principales (`script.js`)
-
-```js
-const MIN_CIDR = 8;
-const MAX_CIDR = 30;
-
-const START_LIVES = 3;
-const MAX_LIVES = 9;
-
-const LEVEL_UP_EVERY = 10;
-
-const BASE_TIME_MS = 60000;
-const MIN_TIME_MS = 5000;
-const TIME_REDUCTION_PER_LEVEL = 4000;
-
-const RECENT_NETID_WINDOW = 3;
-```
