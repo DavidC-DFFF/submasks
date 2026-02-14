@@ -31,6 +31,10 @@ body {
   padding: 20px;
 }
 
+body.help-open {
+  overflow-x: hidden;
+}
+
 /* =========================
    Theme (light)
 ========================= */
@@ -140,8 +144,15 @@ body.theme-light .life-cell.cap.off {
 
 /* Conteneur de scene pour positionner le slideout sous la fenetre */
 .game-stage {
+  --info-panel-width: min(320px, 86vw);
+  --info-shift: clamp(60px, calc(var(--info-panel-width) * 0.45), 200px);
   position: relative;
   width: min(920px, 100%);
+  transition: transform 0.25s ease;
+}
+
+.game-stage.help-open {
+  transform: translateX(calc(var(--info-shift) * -1));
 }
 
 .game-wrap {
@@ -160,18 +171,21 @@ body.theme-light .life-cell.cap.off {
 ========================= */
 .info-panel {
   position: absolute;
-  top: 0;
+  top: 24px;
   right: 0;
-  height: 100%;
-  width: min(320px, 86vw);
-  padding: 28px 20px;
+  bottom: 24px;
+  height: auto;
+  width: var(--info-panel-width);
+  padding: 22px 18px;
   background: linear-gradient(180deg, #141b2e 0%, #0f1424 100%);
   color: var(--text);
   border-left: 1px solid #2b3960;
+  border-radius: 0 16px 16px 0;
   box-shadow: -10px 0 25px rgba(0, 0, 0, 0.35);
   transform: translateX(0);
   transition: transform 0.25s ease;
   z-index: 1; /* derriere la fenetre de jeu */
+  font-size: 0.9rem;
 }
 
 .info-panel.is-open {
@@ -206,13 +220,14 @@ body.theme-light .life-cell.cap.off {
 
 .info-content h2 {
   margin: 0 0 8px;
-  font-size: 1.05rem;
+  font-size: 0.98rem;
 }
 
 .info-content p {
   margin: 0 0 10px;
   color: var(--muted);
   line-height: 1.5;
+  font-size: 0.9rem;
 }
 
 body.theme-light .info-panel {

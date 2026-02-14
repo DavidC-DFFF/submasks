@@ -73,6 +73,7 @@ const levelProgressEl = document.getElementById("levelProgress");
 const scoreMultiplierEl = document.getElementById("scoreMultiplier");
 const infoPanelEl = document.getElementById("infoPanel");
 const infoToggleBtnEl = document.getElementById("infoToggle");
+const gameStageEl = document.querySelector(".game-stage");
 
 const timeBarFillEl = document.getElementById("timeBarFill");
 const pausePenaltyEl = document.getElementById("pausePenalty");
@@ -143,6 +144,10 @@ function bindEvents() {
 function setInfoPanelOpen(isOpen) {
   if (!infoPanelEl) return;
   infoPanelEl.classList.toggle("is-open", isOpen);
+  if (gameStageEl) {
+    gameStageEl.classList.toggle("help-open", isOpen);
+  }
+  document.body.classList.toggle("help-open", isOpen);
 
   if (infoToggleBtnEl) {
     infoToggleBtnEl.setAttribute("aria-expanded", isOpen ? "true" : "false");
