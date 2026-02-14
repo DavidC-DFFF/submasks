@@ -60,6 +60,12 @@ body.theme-light .step {
   background: #dfe8fb;
 }
 
+body.theme-light .step.on {
+  background: linear-gradient(90deg, #42a5f5 0%, #7cc8ff 100%);
+  border-color: rgba(66, 165, 245, 0.85);
+  box-shadow: 0 0 10px rgba(66, 165, 245, 0.45);
+}
+
 body.theme-light .question-section {
   background: #f3f6fd;
   border-color: #cbd6ee;
