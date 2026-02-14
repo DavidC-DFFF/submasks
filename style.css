@@ -11,6 +11,9 @@
   --danger: #ff5d73;
 
   --shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+
+  --help-panel-bg: linear-gradient(180deg, #22325a 0%, #1a2442 100%);
+  --help-panel-border: #3a4f7f;
 }
 
 /* =========================
@@ -48,6 +51,9 @@ body.theme-light {
   --shadow: 0 10px 30px rgba(20, 30, 50, 0.12);
 
   background: radial-gradient(circle at top, #f6f8ff 0%, var(--bg) 65%);
+
+  --help-panel-bg: linear-gradient(180deg, #f1f5ff 0%, #e4ecfb 100%);
+  --help-panel-border: #c6d2ea;
 }
 
 body.theme-light .game-wrap {
@@ -177,9 +183,9 @@ body.theme-light .life-cell.cap.off {
   height: auto;
   width: var(--info-panel-width);
   padding: 22px 18px;
-  background: linear-gradient(180deg, #141b2e 0%, #0f1424 100%);
+  background: var(--help-panel-bg);
   color: var(--text);
-  border-left: 1px solid #2b3960;
+  border: 1px solid var(--help-panel-border);
   border-radius: 0 16px 16px 0;
   box-shadow: -10px 0 25px rgba(0, 0, 0, 0.35);
   transform: translateX(0);
@@ -194,14 +200,15 @@ body.theme-light .life-cell.cap.off {
 
 .info-toggle {
   position: absolute;
-  right: -32px;
+  right: -31px;
   top: 140px;
   width: 32px;
   height: 96px;
   padding: 0;
   border-radius: 0 10px 10px 0;
-  border: 1px solid #3a4f7f;
-  background: linear-gradient(180deg, #22325a 0%, #1a2442 100%);
+  border: 1px solid var(--help-panel-border);
+  border-left: 0;
+  background: var(--help-panel-bg);
   color: #d9e5ff;
   font-weight: 700;
   letter-spacing: 0.4px;
@@ -212,10 +219,7 @@ body.theme-light .life-cell.cap.off {
   place-items: center;
   clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 0 64%, 10px 50%, 0 36%);
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.35);
-}
-
-.info-toggle:hover {
-  filter: brightness(1.1);
+  z-index: 2;
 }
 
 .info-content h2 {
@@ -231,14 +235,14 @@ body.theme-light .life-cell.cap.off {
 }
 
 body.theme-light .info-panel {
-  background: linear-gradient(180deg, #f7f9ff 0%, #e6edf9 100%);
-  border-left-color: #cbd6ee;
+  background: var(--help-panel-bg);
+  border-color: var(--help-panel-border);
   box-shadow: -10px 0 22px rgba(30, 50, 90, 0.12);
 }
 
 body.theme-light .info-toggle {
-  background: linear-gradient(180deg, #f1f5ff 0%, #e4ecfb 100%);
-  border-color: #c6d2ea;
+  background: var(--help-panel-bg);
+  border-color: var(--help-panel-border);
   color: #2a3a59;
 }
 
