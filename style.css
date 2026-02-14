@@ -517,6 +517,10 @@ button:disabled {
   background: #58a6ff;
 }
 
+.chip-pause {
+  background: #ff5d73;
+}
+
 .chip-bonus {
   background: #ffdc5e;
 }
